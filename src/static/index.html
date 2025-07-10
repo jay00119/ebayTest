@@ -296,10 +296,12 @@
             animation: fadeIn 0.5s ease;
         }
 
-        .keywords-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        .keywords-list {
+            /* display: grid; */
+            /* grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
+            /* gap: 20px; */
+            list-style: none;
+            padding: 0;
         }
 
         .keyword-item {
@@ -308,6 +310,10 @@
             padding: 15px;
             border-left: 4px solid #667eea;
             transition: all 0.3s ease;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .keyword-item:hover {
@@ -315,10 +321,16 @@
             transform: translateY(-2px);
         }
 
+        .keyword-content {
+            flex-grow: 1;
+        }
+
         .keyword-original {
             font-weight: 600;
             color: #495057;
             margin-bottom: 5px;
+            display: inline-block;
+            margin-right: 10px;
         }
 
         .keyword-translations {
@@ -333,7 +345,20 @@
             border-radius: 15px;
             font-size: 0.8rem;
             font-weight: 600;
-            float: right;
+            /* float: right; */
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .keyword-percentage {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+            white-space: nowrap;
         }
 
         .error-section {
@@ -466,7 +491,7 @@
                 <div id="keywords-stats" class="results-stats">
                     <!-- 关键词统计将通过JavaScript动态生成 -->
                 </div>
-                <div id="keywords-container" class="keywords-grid">
+                <div id="keywords-container" class="keywords-list">
                     <!-- 关键词列表将通过JavaScript动态生成 -->
                 </div>
             </div>
@@ -667,14 +692,17 @@
             // 生成关键词列表
             keywordsContainer.innerHTML = analysis.top_keywords.map(keyword => `
                 <div class="keyword-item">
-                    <div class="keyword-original">
-                        ${escapeHtml(keyword.original)}
-                        <span class="keyword-count">${keyword.count}</span>
+                    <div class="keyword-content">
+                        <div class="keyword-original">
+                            ${escapeHtml(keyword.original)}
+                        </div>
+                        <div class="keyword-translations">
+                            <strong>英文:</strong> ${escapeHtml(keyword.english)}<br>
+                            <strong>中文:</strong> ${escapeHtml(keyword.chinese)}
+                        </div>
                     </div>
-                    <div class="keyword-translations">
-                        <strong>英文:</strong> ${escapeHtml(keyword.english)}<br>
-                        <strong>中文:</strong> ${escapeHtml(keyword.chinese)}
-                    </div>
+                    <span class="keyword-count">${keyword.count}</span>
+                    <span class="keyword-percentage">${keyword.percentage}%</span>
                 </div>
             `).join('');
         }

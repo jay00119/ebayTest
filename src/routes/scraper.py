@@ -259,6 +259,11 @@ class TitleAnalyzer:
             # 批量翻译关键词
             translated_keywords = self.batch_translate_keywords(top_keywords)
             
+            # 计算每个关键词的占比
+            total_word_count = sum(item['count'] for item in translated_keywords)
+            for item in translated_keywords:
+                item['percentage'] = round((item['count'] / total_word_count) * 100, 2) if total_word_count > 0 else 0
+            
             logger.info(f"翻译完成，返回{len(translated_keywords)}个关键词")
             
             return {
