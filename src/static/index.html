@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eBay商品标题抓取工具</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .input-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1rem;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-section {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196f3;
+            display: none;
+        }
+
+        .status-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-text {
+            font-size: 1rem;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .results-header {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #4caf50;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .titles-list {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .titles-list h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .title-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .title-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .title-item:last-child {
+            border-bottom: none;
+        }
+
+        .title-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #495057;
+        }
+
+        .keywords-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .keywords-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .keywords-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .keyword-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .keyword-original {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .keyword-translations {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .keyword-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            float: right;
+        }
+
+        .error-section {
+            background: #ffebee;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #f44336;
+            display: none;
+        }
+
+        .error-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .error-text {
+            color: #c62828;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .input-section {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .results-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>eBay商品标题抓取工具</h1>
+            <p>智能抓取eBay商品标题，支持多页抓取、分词统计和多语言翻译</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 输入区域 -->
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="ebay-url">请输入eBay分类页面</label>
+                    <input 
+                        type="url" 
+                        id="ebay-url" 
+                        class="url-input" 
+                        placeholder="请输入eBay商品列表页面的URL，例如：https://www.ebay.de/b/Smart-Home-Beleuchtungen/185044/bn_115383452"
+                    >
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="startScraping()">
+                        开始分析
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearResults()">
+                        清空结果
+                    </button>
+                    <button class="btn btn-primary" onclick="copyResultsToClipboard()">
+                        一键复制
+                    </button>
+                </div>
+            </div>
+
+            <!-- 状态区域 -->
+            <div id="status-section" class="status-section">
+                <div class="status-text" id="status-text">准备开始抓取...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- 错误区域 -->
+            <div id="error-section" class="error-section">
+                <div class="error-text" id="error-text"></div>
+            </div>
+
+            <!-- 结果区域 -->
+            <div id="results-section" class="results-section">
+                <div class="results-header">
+                    <h2>分析结果</h2>
+                    <p id="results-summary">抓取完成！</p>
+                </div>
+
+                <div class="results-stats" id="results-stats">
+                    <!-- 统计卡片将通过JavaScript动态生成 -->
+                </div>
+
+                <div class="titles-list" style="display: none;">
+                    <h3>商品标题列表</h3>
+                    <div id="titles-container">
+                        <!-- 标题列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <div class="button-group" style="display: none;">
+                    <button class="btn btn-primary" onclick="analyzeKeywords()">
+                        分析关键词
+                    </button>
+                </div>
+            </div>
+
+            <!-- 关键词分析区域 -->
+            <div id="keywords-section" class="keywords-section">
+                <div id="keywords-stats" class="results-stats">
+                    <!-- 关键词统计将通过JavaScript动态生成 -->
+                </div>
+                <div id="keywords-container" class="keywords-grid">
+                    <!-- 关键词列表将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTitles = [];
+        let isAnalyzing = false;
+
+        function showStatus(message, progress = 0) {
+            const statusSection = document.getElementById('status-section');
+            const statusText = document.getElementById('status-text');
+            const progressFill = document.getElementById('progress-fill');
+            
+            statusSection.classList.add('show');
+            statusText.textContent = message;
+            progressFill.style.width = progress + '%';
+        }
+
+        function hideStatus() {
+            const statusSection = document.getElementById('status-section');
+            statusSection.classList.remove('show');
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById('error-section');
+            const errorText = document.getElementById('error-text');
+            
+            errorSection.classList.add('show');
+            errorText.textContent = message;
+            
+            setTimeout(() => {
+                errorSection.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideError() {
+            const errorSection = document.getElementById('error-section');
+            errorSection.classList.remove('show');
+        }
+
+        async function startScraping() {
+            const urlInput = document.getElementById('ebay-url');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showError('请输入eBay页面URL');
+                return;
+            }
+
+            if (!url.includes('ebay')) {
+                showError('请输入有效的eBay页面URL');
+                return;
+            }
+
+            hideError();
+            hideResults();
+            showStatus('正在连接eBay服务器...', 10);
+
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                showStatus('正在抓取商品标题...', 50);
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('抓取完成，正在处理结果...', 90);
+                    currentTitles = data.titles;
+                    displayResults(data);
+                    showStatus('处理完成！', 100);
+                    setTimeout(hideStatus, 1000);
+                    analyzeKeywords(); // 抓取成功后直接调用分析关键词
+                } else {
+                    throw new Error(data.error || '抓取失败');
+                }
+            } catch (error) {
+                hideStatus();
+                showError('抓取失败: ' + error.message);
+                console.error('抓取错误:', error);
+            }
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('results-section');
+            const resultsSummary = document.getElementById('results-summary');
+            const resultsStats = document.getElementById('results-stats');
+            const titlesContainer = document.getElementById('titles-container');
+
+            // 显示结果区域
+            resultsSection.classList.add('show');
+
+            // 更新摘要
+            resultsSummary.textContent = `成功获取${data.count}个商品信息，并完成专业分析！`;
+
+            // 生成统计卡片
+            resultsStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${data.count}</div>
+                    <div class="stat-label">商品标题</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${data.successful_pages || 4}</div>
+                    <div class="stat-label">抓取页面</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${Math.round(data.count / (data.successful_pages || 4))}</div>
+                    <div class="stat-label">平均每页</div>
+                </div>
+            `;
+
+            // 生成标题列表
+            titlesContainer.innerHTML = data.titles.map((title, index) => `
+                <div class="title-item">
+                    <div class="title-text">${index + 1}. ${escapeHtml(title)}</div>
+                </div>
+            `).join('');
+        }
+
+        async function analyzeKeywords() {
+            if (!currentTitles.length) {
+                showError('请先抓取商品标题');
+                return;
+            }
+
+            if (isAnalyzing) {
+                return;
+            }
+
+            isAnalyzing = true;
+            hideError();
+            showStatus('正在分析关键词...', 20);
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ titles: currentTitles })
+                });
+
+                showStatus('正在翻译关键词...', 60);
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('分析完成！', 100);
+                    displayKeywords(data.analysis);
+                    setTimeout(hideStatus, 1000);
+                } else {
+                    throw new Error(data.error || '分析失败');
+                }
+            } catch (error) {
+                hideStatus();
+                showError('关键词分析失败: ' + error.message);
+                console.error('分析错误:', error);
+            } finally {
+                isAnalyzing = false;
+            }
+        }
+
+        function displayKeywords(analysis) {
+            const keywordsSection = document.getElementById('keywords-section');
+            const keywordsStats = document.getElementById('keywords-stats');
+            const keywordsContainer = document.getElementById('keywords-container');
+
+            // 显示关键词区域
+            keywordsSection.classList.add('show');
+
+            // 生成关键词统计
+            keywordsStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${analysis.total_titles}</div>
+                    <div class="stat-label">分析标题</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${analysis.total_words}</div>
+                    <div class="stat-label">总词数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${analysis.unique_words}</div>
+                    <div class="stat-label">唯一词汇</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${analysis.top_keywords.length}</div>
+                    <div class="stat-label">热门关键词</div>
+                </div>
+            `;
+
+            // 生成关键词列表
+            keywordsContainer.innerHTML = analysis.top_keywords.map(keyword => `
+                <div class="keyword-item">
+                    <div class="keyword-original">
+                        ${escapeHtml(keyword.original)}
+                        <span class="keyword-count">${keyword.count}</span>
+                    </div>
+                    <div class="keyword-translations">
+                        <strong>英文:</strong> ${escapeHtml(keyword.english)}<br>
+                        <strong>中文:</strong> ${escapeHtml(keyword.chinese)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function hideResults() {
+            const resultsSection = document.getElementById('results-section');
+            const keywordsSection = document.getElementById('keywords-section');
+            
+            resultsSection.classList.remove('show');
+            keywordsSection.classList.remove('show');
+        }
+
+        function clearResults() {
+            hideResults();
+            hideStatus();
+            hideError();
+            currentTitles = [];
+            document.getElementById('ebay-url').value = '';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function copyResultsToClipboard() {
+            if (!currentTitles.length || !document.getElementById("keywords-container").children.length) {
+                showError("没有分析结果可以复制。");
+                return;
+            }
+
+            let csvContent = "关键词,英文翻译,中文翻译,出现次数\n";
+
+            const keywordsContainer = document.getElementById("keywords-container");
+            const keywordItems = keywordsContainer.getElementsByClassName("keyword-item");
+
+            for (let i = 0; i < keywordItems.length; i++) {
+                const item = keywordItems[i];
+                const original = item.querySelector(".keyword-original").textContent.trim().split(" ")[0];
+                const english = item.querySelector(".keyword-translations strong:nth-of-type(1)").nextSibling.textContent.trim();
+                const chinese = item.querySelector(".keyword-translations strong:nth-of-type(2)").nextSibling.textContent.trim();
+                const count = item.querySelector(".keyword-count").textContent.trim();
+
+                csvContent += `"${original}","${english}","${chinese}",${count}\n`;
+            }
+
+            try {
+                await navigator.clipboard.writeText(csvContent);
+                showStatus("分析结果已复制到剪贴板！", 100);
+                setTimeout(hideStatus, 2000);
+            } catch (err) {
+                showError("复制失败，请手动复制。");
+                console.error("复制到剪贴板失败:", err);
+            }
+        }
+
+        // 回车键触发抓取
+        document.getElementById("ebay-url").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                startScraping();
+            }
+        });
+    </script>
+</body>
+</html>
+
