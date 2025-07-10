@@ -3,20 +3,45 @@ import sys
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
 from src.routes.scraper import scraper_bp
+from src.routes.test_api import test_bp
+from src.routes.deepl_api import deepl_bp
+import logging
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # 启用CORS支持
 CORS(app)
 
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(scraper_bp, url_prefix='/api')
+app.register_blueprint(test_bp, url_prefix='/api')
+app.register_blueprint(deepl_bp, url_prefix='/api')
+
+# 添加全局错误处理器
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"内部服务器错误: {str(error)}")
+    return jsonify({'error': '内部服务器错误'}), 500
+
+@app.errorhandler(404)
+def not_found(error):
+    logger.error(f"资源未找到: {str(error)}")
+    return jsonify({'error': '资源未找到'}), 404
+
+@app.errorhandler(400)
+def bad_request(error):
+    logger.error(f"请求错误: {str(error)}")
+    return jsonify({'error': '请求格式错误'}), 400
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"

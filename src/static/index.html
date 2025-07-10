@@ -296,69 +296,83 @@
             animation: fadeIn 0.5s ease;
         }
 
-        .keywords-list {
-            /* display: grid; */
-            /* grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
-            /* gap: 20px; */
-            list-style: none;
-            padding: 0;
+        .keywords-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .keyword-item {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .keywords-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
         }
 
-        .keyword-item:hover {
-            background: #e9ecef;
-            transform: translateY(-2px);
+        .keywords-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .keyword-content {
-            flex-grow: 1;
+        .keywords-table td {
+            padding: 12px 20px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
         }
 
-        .keyword-original {
+        .keywords-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .keywords-table tr:hover {
+            background-color: #e3f2fd;
+            transition: background-color 0.3s ease;
+        }
+
+        .rank-cell {
             font-weight: 600;
             color: #495057;
-            margin-bottom: 5px;
-            display: inline-block;
-            margin-right: 10px;
+            width: 80px;
         }
 
-        .keyword-translations {
-            font-size: 0.9rem;
-            color: #6c757d;
+        .keyword-cell {
+            font-weight: 600;
+            color: #495057;
+            text-align: left;
+            width: 200px;
         }
 
-        .keyword-count {
+        .frequency-cell {
+            width: 120px;
+        }
+
+        .frequency-badge {
             background: #667eea;
             color: white;
-            padding: 4px 8px;
-            border-radius: 15px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
             font-weight: 600;
-            /* float: right; */
-            margin-left: auto;
-            white-space: nowrap;
+            display: inline-block;
         }
 
-        .keyword-percentage {
-            background: #4CAF50;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 15px;
-            font-size: 0.8rem;
+        .translation-cell {
+            color: #6c757d;
+            font-style: italic;
+            text-align: left;
+            width: 200px;
+        }
+
+        .percentage-cell {
+            width: 100px;
             font-weight: 600;
-            margin-left: 10px;
-            white-space: nowrap;
+            color: #4CAF50;
         }
 
         .error-section {
@@ -468,10 +482,6 @@
                     <p id="results-summary">抓取完成！</p>
                 </div>
 
-                <div class="results-stats" id="results-stats">
-                    <!-- 统计卡片将通过JavaScript动态生成 -->
-                </div>
-
                 <div class="titles-list" style="display: none;">
                     <h3>商品标题列表</h3>
                     <div id="titles-container">
@@ -488,11 +498,12 @@
 
             <!-- 关键词分析区域 -->
             <div id="keywords-section" class="keywords-section">
+                <h3 style="text-align: center; color: #495057; margin-bottom: 30px; font-size: 1.5rem;">关键词分析结果</h3>
                 <div id="keywords-stats" class="results-stats">
                     <!-- 关键词统计将通过JavaScript动态生成 -->
                 </div>
-                <div id="keywords-container" class="keywords-list">
-                    <!-- 关键词列表将通过JavaScript动态生成 -->
+                <div id="keywords-container" class="keywords-table">
+                    <!-- 关键词表格将通过JavaScript动态生成 -->
                 </div>
             </div>
         </div>
@@ -585,7 +596,6 @@
         function displayResults(data) {
             const resultsSection = document.getElementById('results-section');
             const resultsSummary = document.getElementById('results-summary');
-            const resultsStats = document.getElementById('results-stats');
             const titlesContainer = document.getElementById('titles-container');
 
             // 显示结果区域
@@ -593,22 +603,6 @@
 
             // 更新摘要
             resultsSummary.textContent = `成功获取${data.count}个商品信息，并完成专业分析！`;
-
-            // 生成统计卡片
-            resultsStats.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-number">${data.count}</div>
-                    <div class="stat-label">商品标题</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${data.successful_pages || 4}</div>
-                    <div class="stat-label">抓取页面</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${Math.round(data.count / (data.successful_pages || 4))}</div>
-                    <div class="stat-label">平均每页</div>
-                </div>
-            `;
 
             // 生成标题列表
             titlesContainer.innerHTML = data.titles.map((title, index) => `
@@ -633,7 +627,7 @@
             showStatus('正在分析关键词...', 20);
 
             try {
-                const response = await fetch('/api/analyze', {
+                const response = await fetch('/api/analyze-deepl', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -689,22 +683,35 @@
                 </div>
             `;
 
-            // 生成关键词列表
-            keywordsContainer.innerHTML = analysis.top_keywords.map(keyword => `
-                <div class="keyword-item">
-                    <div class="keyword-content">
-                        <div class="keyword-original">
-                            ${escapeHtml(keyword.original)}
-                        </div>
-                        <div class="keyword-translations">
-                            <strong>英文:</strong> ${escapeHtml(keyword.english)}<br>
-                            <strong>中文:</strong> ${escapeHtml(keyword.chinese)}
-                        </div>
-                    </div>
-                    <span class="keyword-count">${keyword.count}</span>
-                    <span class="keyword-percentage">${keyword.percentage}%</span>
-                </div>
-            `).join('');
+            // 生成关键词表格
+            keywordsContainer.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="rank-cell">排名</th>
+                            <th class="keyword-cell">关键词</th>
+                            <th class="frequency-cell">词频</th>
+                            <th class="percentage-cell">占比</th>
+                            <th class="translation-cell">英语翻译</th>
+                            <th class="translation-cell">中文翻译</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${analysis.top_keywords.map((keyword, index) => `
+                            <tr>
+                                <td class="rank-cell">${index + 1}</td>
+                                <td class="keyword-cell">${escapeHtml(keyword.original)}</td>
+                                <td class="frequency-cell">
+                                    <span class="frequency-badge">${keyword.count}</span>
+                                </td>
+                                <td class="percentage-cell">${keyword.percentage}%</td>
+                                <td class="translation-cell">${escapeHtml(keyword.english)}</td>
+                                <td class="translation-cell">${escapeHtml(keyword.chinese)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
         }
 
         function hideResults() {
@@ -730,24 +737,28 @@
         }
 
         async function copyResultsToClipboard() {
-            if (!currentTitles.length || !document.getElementById("keywords-container").children.length) {
+            if (!currentTitles.length || !document.querySelector("#keywords-container table")) {
                 showError("没有分析结果可以复制。");
                 return;
             }
 
-            let csvContent = "关键词,英文翻译,中文翻译,出现次数\n";
+            let csvContent = "排名\t关键词\t词频\t占比\t英语翻译\t中文翻译\n";
 
-            const keywordsContainer = document.getElementById("keywords-container");
-            const keywordItems = keywordsContainer.getElementsByClassName("keyword-item");
+            const table = document.querySelector("#keywords-container table tbody");
+            const rows = table.getElementsByTagName("tr");
 
-            for (let i = 0; i < keywordItems.length; i++) {
-                const item = keywordItems[i];
-                const original = item.querySelector(".keyword-original").textContent.trim().split(" ")[0];
-                const english = item.querySelector(".keyword-translations strong:nth-of-type(1)").nextSibling.textContent.trim();
-                const chinese = item.querySelector(".keyword-translations strong:nth-of-type(2)").nextSibling.textContent.trim();
-                const count = item.querySelector(".keyword-count").textContent.trim();
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                if (cells.length >= 6) {
+                    const rank = cells[0].textContent.trim();
+                    const keyword = cells[1].textContent.trim();
+                    const frequency = cells[2].querySelector(".frequency-badge").textContent.trim();
+                    const percentage = cells[3].textContent.trim();
+                    const english = cells[4].textContent.trim();
+                    const chinese = cells[5].textContent.trim();
 
-                csvContent += `"${original}","${english}","${chinese}",${count}\n`;
+                    csvContent += `${rank}\t${keyword}\t${frequency}\t${percentage}\t${english}\t${chinese}\n`;
+                }
             }
 
             try {

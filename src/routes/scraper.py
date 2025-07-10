@@ -569,13 +569,20 @@ def scrape_ebay():
 def analyze_titles():
     """分析标题并提供分词统计和翻译"""
     try:
+        # 添加请求内容类型检查
+        if not request.is_json:
+            logger.error(f"请求内容类型错误: {request.content_type}")
+            return jsonify({'error': '请求必须是JSON格式'}), 400
+            
         data = request.get_json()
         if not data or 'titles' not in data:
+            logger.error(f"请求数据格式错误: {data}")
             return jsonify({'error': '请提供标题列表'}), 400
         
         titles = data['titles']
         
         if not titles:
+            logger.error("标题列表为空")
             return jsonify({'error': '标题列表不能为空'}), 400
         
         logger.info(f"开始分析{len(titles)}个标题")
@@ -592,6 +599,6 @@ def analyze_titles():
         })
         
     except Exception as e:
-        logger.error(f"分析过程中发生错误: {str(e)}")
-        return jsonify({'error': f'分析失败: {str(e)}'}), 500
+        logger.error(f"分析过程中发生错误: {str(e)}", exc_info=True)
+        return jsonify({"error": f"分析失败: {str(e)}"}), 500
 
